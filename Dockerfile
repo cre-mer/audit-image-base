@@ -14,6 +14,9 @@ RUN apk update && apk add --no-cache \
     bash
 RUN rm -rf /var/cache/apk/*
 
+# Add /bin/zsh to /etc/shells
+RUN echo "/bin/zsh" >> /etc/shells
+
 # Set zsh as the default shell for root
 RUN chsh -s /bin/zsh root
 
