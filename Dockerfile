@@ -11,11 +11,15 @@ RUN apk update && apk add --no-cache \
     zip \
     unzip \
     zsh \
-    bash
+    bash \
+    shadow
 RUN rm -rf /var/cache/apk/*
 
 # Add /bin/zsh to /etc/shells
 RUN echo "/bin/zsh" >> /etc/shells
+
+# Verify /etc/shells content (for debugging)
+RUN cat /etc/shells
 
 # Set zsh as the default shell for root
 RUN chsh -s /bin/zsh root
@@ -27,8 +31,8 @@ RUN sh -c "$(wget -O- https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/t
 ARG USERNAME=auditor
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
-RUN addgroup -g $USER_GID $USERNAME
-RUN adduser -u $USER_UID -G $USER_GID -s /bin/zsh -D $USERNAME
+RUN addgroup -g $USER_GID $USERNAME && \
+    adduser -u $USER_UID -G $USERNAME -s /bin/zsh -D $USERNAME
 
 # Set the working directory
 WORKDIR /home/$USERNAME/app
