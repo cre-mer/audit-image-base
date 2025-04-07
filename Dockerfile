@@ -1,8 +1,8 @@
-# Use an official Alpine image as the base
-FROM alpine:latest
+# Use an official Ubuntu image as the base
+FROM ubuntu:latest
 
 # Update package lists and install essential tools, zsh, and git for oh-my-zsh
-RUN apk update && apk add --no-cache \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     wget \
     vim \
@@ -12,8 +12,8 @@ RUN apk update && apk add --no-cache \
     unzip \
     zsh \
     bash \
-    shadow
-RUN rm -rf /var/cache/apk/*
+    passwd \
+    && rm -rf /var/lib/apt/lists/*
 
 # Add /bin/zsh to /etc/shells
 RUN echo "/bin/zsh" >> /etc/shells
@@ -29,19 +29,15 @@ RUN sh -c "$(wget -O- https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/t
 
 # Create a non-root user for development
 ARG USERNAME=auditor
-ARG USER_UID=1000
-ARG USER_GID=$USER_UID
-RUN addgroup -g $USER_GID $USERNAME && \
-    adduser -u $USER_UID -G $USERNAME -s /bin/zsh -D $USERNAME
+ARG USER_UID=1001
+ARG USER_GID=1000
+RUN useradd --uid $USER_UID --gid $USER_GID --shell /bin/zsh --create-home $USERNAME
 
 # Set the working directory
 WORKDIR /home/$USERNAME/app
 
 # Switch to the non-root user
 USER $USERNAME
-
-# Set zsh as the default shell for the dev user
-RUN chsh -s /bin/zsh $USERNAME
 
 # Define the default command
 CMD ["zsh"]
