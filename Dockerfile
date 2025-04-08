@@ -21,7 +21,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     zip \
     unzip \
     zsh \
-    sudo \
     procps \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
@@ -31,12 +30,7 @@ RUN echo "/bin/zsh" | tee -a /etc/shells
 
 # Create the non-root user with zsh as the default shell
 RUN groupadd --gid $USER_GID $USERNAME \
-    && useradd --uid $USER_UID --gid $USER_GID --shell /bin/zsh --create-home --home-dir $USER_HOME $USERNAME \
-    # Add user to sudo group
-    && usermod -aG sudo $USERNAME \
-    # Configure sudo to not require password for this user
-    && echo "$USERNAME ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers.d/$USERNAME \
-    && chmod 0440 /etc/sudoers.d/$USERNAME
+    && useradd --uid $USER_UID --gid $USER_GID --shell /bin/zsh --create-home --home-dir $USER_HOME $USERNAME
 
 # Switch to the non-root user
 USER $USERNAME
