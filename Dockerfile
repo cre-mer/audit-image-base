@@ -1,7 +1,17 @@
 # Use an official Ubuntu image as the base
 FROM ubuntu:latest
 
-# Update package lists and install essential tools, zsh, and git for oh-my-zsh
+# Set DEBIAN_FRONTEND to noninteractive to avoid prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Define arguments for user configuration (can be overridden at build time)
+ARG USERNAME=auditor
+ARG USER_UID=1001
+ARG USER_GID=1001
+ARG USER_HOME=/home/$USERNAME
+
+# Update package lists and install essential tools, zsh, git, sudo, and CA certificates
+# ca-certificates is needed for secure HTTPS connections
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     wget \
@@ -11,33 +21,34 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     zip \
     unzip \
     zsh \
-    bash \
-    passwd \
+    sudo \
+    procps \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Add /bin/zsh to /etc/shells
-RUN echo "/bin/zsh" >> /etc/shells
+# Add /bin/zsh to /etc/shells if it's not already there
+RUN echo "/bin/zsh" | tee -a /etc/shells
 
-# Verify /etc/shells content (for debugging)
-RUN cat /etc/shells
-
-# Set zsh as the default shell for root
-RUN chsh -s /bin/zsh root
-
-# Install oh-my-zsh
-RUN sh -c "$(wget -O- https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-
-# Create a non-root user for development
-ARG USERNAME=auditor
-ARG USER_UID=1001
-ARG USER_GID=1000
-RUN useradd --uid $USER_UID --gid $USER_GID --shell /bin/zsh --create-home $USERNAME
-
-# Set the working directory
-WORKDIR /home/$USERNAME/app
+# Create the non-root user with zsh as the default shell
+RUN groupadd --gid $USER_GID $USERNAME \
+    && useradd --uid $USER_UID --gid $USER_GID --shell /bin/zsh --create-home --home-dir $USER_HOME $USERNAME \
+    # Add user to sudo group
+    && usermod -aG sudo $USERNAME \
+    # Configure sudo to not require password for this user
+    && echo "$USERNAME ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers.d/$USERNAME \
+    && chmod 0440 /etc/sudoers.d/$USERNAME
 
 # Switch to the non-root user
 USER $USERNAME
 
-# Define the default command
+# Set the working directory to the user's home directory
+WORKDIR $USER_HOME
+
+# Clone Oh-My-Zsh repository directly
+RUN git clone https://github.com/ohmyzsh/ohmyzsh.git ~/.oh-my-zsh
+
+# Create a .zshrc file that sources Oh-My-Zsh
+RUN cp ~/.oh-my-zsh/templates/zshrc.zsh-template ~/.zshrc
+
+# Set the default command to run zsh
 CMD ["zsh"]
