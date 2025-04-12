@@ -7,7 +7,7 @@ This repository contains a Dockerfile to build a base Ubuntu image pre-configure
 The Dockerfile performs the following actions:
 
 - Starts with the latest Ubuntu image.
-- Installs common tools like `curl`, `wget`, `vim`, `neovim`, `git`, `zsh`, and more.
+- Installs common tools like `curl`, `wget`, `git`, `zsh`, `jq` and more.
 - Creates a non-root user `auditor`.
 - Sets `zsh` as the default shell for the non-root user.
 - Installs Oh-My-Zsh.
