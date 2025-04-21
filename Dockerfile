@@ -23,6 +23,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     procps \
     ca-certificates \
     jq \
+    nano \
     && rm -rf /var/lib/apt/lists/*
 
 # Add /bin/zsh to /etc/shells if it's not already there
